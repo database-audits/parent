@@ -1,0 +1,39 @@
+# Compile and test every branch: unit tests (surefire, *Test) and integration
+# tests (failsafe, *IT).
+name: Build any branch
+
+on:
+  push:
+    paths-ignore:
+      - "**/src/site/**"
+      - "**/*.adoc"
+      - "**/*.md"
+  pull_request:
+    paths-ignore:
+      - "**/src/site/**"
+      - "**/*.adoc"
+      - "**/*.md"
+
+permissions:
+  contents: write # needed as the default GITHUB_TOKEN is read-only and submission 403s without it
+
+env:
+  MAVEN_COMMAND: ./mvnw
+  MAVEN_CLI_COMMON: "-e -B -N"
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  compile-and-unit-test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20 # cold runs pull ~1 GB of database container images
+    steps:
+      - uses: actions/checkout@v6
+      - uses: ./.github/actions/jdk-setup
+      - name: Compile and run unit and integration tests
+        run: ${{ env.MAVEN_COMMAND }} ${{ env.MAVEN_CLI_COMMON }} clean verify
+      - name: Submit dependencies to GitHub
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        uses: advanced-security/maven-dependency-submission-action@v5

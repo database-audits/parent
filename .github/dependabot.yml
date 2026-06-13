@@ -1,0 +1,44 @@
+version: 2
+updates:
+  # -----------------------------------------------------------------------
+  # Maven dependencies — weekly, grouped to reduce changes.xml churn.
+  # Dependabot follows the aggregator's <modules>, so "/" covers the
+  # parent, core, and spring poms — including the spring-boot-dependencies
+  # BOM import in parent/pom.xml that manages most library versions.
+  # -----------------------------------------------------------------------
+  - package-ecosystem: "maven"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+    open-pull-requests-limit: 10
+    groups:
+      # Maven build and reporting plugins
+      maven-plugins:
+        patterns:
+          - "org.apache.maven.plugins:*"
+          - "org.codehaus.mojo:*"
+          - "org.asciidoctor:*"
+          - "org.sonatype.central:*"
+      # Test libraries
+      test-dependencies:
+        patterns:
+          - "org.junit*:*"
+          - "org.assertj:*"
+        update-types: ["minor", "patch"]
+
+  # -----------------------------------------------------------------------
+  # GitHub Actions — daily, all actions grouped into one PR.
+  # (Kept daily so security-relevant action pins are updated quickly.)
+  # The second directory covers the composite action's setup-java pin.
+  # -----------------------------------------------------------------------
+  - package-ecosystem: "github-actions"
+    directories:
+      - "/"
+      - "/.github/actions/jdk-setup"
+    schedule:
+      interval: "daily"
+    open-pull-requests-limit: 10
+    groups:
+      actions-updates:                 # Group all action updates into one PR
+        patterns:
+          - "*"
