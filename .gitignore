@@ -2,9 +2,22 @@
 target
 
 # Eclipse
-.settings/
-.project
+bin
+.settings
 .classpath
+.project
+
+# IntelliJ
+.idea
+*.iml
+*.ipr
+*.iws
+
+# AI
+.jackknife
+
+# Other
+build-logs
 
 # Compiled class file
 *.class
