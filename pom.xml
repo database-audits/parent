@@ -20,6 +20,7 @@
     Consumers depend on database-audits-core or database-audits-spring-boot.
   </description>
   <url>https://github.com/database-audits</url>
+  <inceptionYear>2026</inceptionYear>
 
   <licenses>
     <license>
