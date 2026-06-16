@@ -42,6 +42,7 @@
     <!-- VERSIONS: plugins — only for what spring-boot does not manage -->
     <central-publishing-maven-plugin.version>0.10.0</central-publishing-maven-plugin.version>
     <jacoco-maven-plugin.version>0.8.15</jacoco-maven-plugin.version>
+    <lombok-maven-plugin.version>1.18.20.0</lombok-maven-plugin.version>
     <maven-gpg-plugin.version>3.2.8</maven-gpg-plugin.version>
     <maven-project-info-reports-plugin.version>3.9.0</maven-project-info-reports-plugin.version>
     <maven-release-plugin.version>3.3.1</maven-release-plugin.version>
@@ -183,6 +184,51 @@
             </execution>
           </executions>
         </plugin>
+        <!-- delombok to generate plain Java source files with explicit Javadocs -->
+        <plugin>
+          <groupId>org.projectlombok</groupId>
+          <artifactId>lombok-maven-plugin</artifactId>
+          <version>${lombok-maven-plugin.version}</version>
+          <dependencies>
+            <dependency>
+              <groupId>org.projectlombok</groupId>
+              <artifactId>lombok</artifactId>
+              <version>${lombok.version}</version>
+            </dependency>
+          </dependencies>
+          <executions>
+            <execution>
+              <phase>generate-sources</phase>
+              <goals>
+                <goal>delombok</goal>
+              </goals>
+              <configuration>
+                <sourceDirectory>src/main/java</sourceDirectory>
+                <outputDirectory>${project.build.directory}/generated-sources/delombok</outputDirectory>
+                <addOutputDirectory>false</addOutputDirectory>
+              </configuration>
+            </execution>
+          </executions>
+        </plugin>
+        <!-- Tell the Source Plugin to package the Delomboked directory, NOT src/main/java -->
+        <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-source-plugin</artifactId>
+          <executions>
+            <execution>
+              <id>attach-sources</id>
+              <goals>
+                <goal>jar-no-fork</goal>
+              </goals>
+              <configuration>
+                <attach>true</attach>
+                <sourceDirectories>
+                  <sourceDirectory>${project.build.directory}/generated-sources/delombok</sourceDirectory>
+                </sourceDirectories>
+              </configuration>
+            </execution>
+          </executions>
+        </plugin>
         <plugin>
           <groupId>org.sonatype.central</groupId>
           <artifactId>central-publishing-maven-plugin</artifactId>
@@ -213,6 +259,10 @@
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-failsafe-plugin</artifactId>
+      </plugin>
+      <plugin>
+        <groupId>org.projectlombok</groupId>
+        <artifactId>lombok-maven-plugin</artifactId>
       </plugin>
       <plugin>
         <groupId>org.jacoco</groupId>
