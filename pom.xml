@@ -122,6 +122,7 @@
             <tagNameFormat>v@{project.version}</tagNameFormat>
             <releaseProfiles>release</releaseProfiles>
             <autoVersionSubmodules>true</autoVersionSubmodules>
+            <goals>deploy</goals>
           </configuration>
         </plugin>
         <plugin>
