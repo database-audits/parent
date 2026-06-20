@@ -40,7 +40,7 @@
     <asciidoctor-parser-doxia-module.version>3.2.0</asciidoctor-parser-doxia-module.version>
 
     <!-- VERSIONS: plugins — only for what spring-boot does not manage -->
-    <central-publishing-maven-plugin.version>0.10.0</central-publishing-maven-plugin.version>
+    <central-publishing-maven-plugin.version>0.11.0</central-publishing-maven-plugin.version>
     <jacoco-maven-plugin.version>0.8.15</jacoco-maven-plugin.version>
     <maven-gpg-plugin.version>3.2.8</maven-gpg-plugin.version>
     <maven-project-info-reports-plugin.version>3.9.0</maven-project-info-reports-plugin.version>
