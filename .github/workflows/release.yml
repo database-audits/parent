@@ -1,0 +1,39 @@
+name: Release to Maven Central
+
+on:
+  push:
+    tags: ['v*'] # created by maven-release-plugin (tagNameFormat v@{project.version})
+
+permissions:
+  contents: read
+
+concurrency:
+  group: release-deploy
+  cancel-in-progress: false
+
+env:
+  MAVEN_COMMAND: ./mvnw
+  MAVEN_CLI_COMMON: "-e -B -N"
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    environment: release
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: ./.github/actions/jdk-setup
+        with:
+          server-id: central-publish
+          server-username: CENTRAL_USERNAME
+          server-password: CENTRAL_TOKEN
+          gpg-private-key: ${{ secrets.GPG_PRIVATE_KEY }}
+          gpg-passphrase: MAVEN_GPG_PASSPHRASE
+
+      - name: Deploy release to Maven Central
+        env:
+          CENTRAL_USERNAME: ${{ secrets.CENTRAL_USERNAME }}
+          CENTRAL_TOKEN: ${{ secrets.CENTRAL_TOKEN }}
+          MAVEN_GPG_PASSPHRASE: ${{ secrets.GPG_PASSPHRASE }}
+        run: ${{ env.MAVEN_COMMAND }} ${{ env.MAVEN_CLI_COMMON }} deploy -Prelease -DskipTests
