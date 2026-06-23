@@ -11,7 +11,7 @@
 
   <groupId>io.github.database-audits</groupId>
   <artifactId>database-audits-parent</artifactId>
-  <version>1.0.2-SNAPSHOT</version>
+  <version>1.1.0</version>
   <packaging>pom</packaging>
 
   <name>Database Audits Parent</name>
@@ -34,7 +34,7 @@
     <!-- CONFIG -->
     <java.version>21</java.version>
     <maven.compiler.release>${java.version}</maven.compiler.release>
-    <project.build.outputTimestamp>2026-06-20T02:59:15Z</project.build.outputTimestamp>
+    <project.build.outputTimestamp>2026-06-23T02:09:40Z</project.build.outputTimestamp>
 
     <!-- VERSIONS: dependencies — only for what spring-boot does not manage -->
     <asciidoctor-parser-doxia-module.version>3.2.0</asciidoctor-parser-doxia-module.version>
@@ -68,7 +68,7 @@
     <connection>scm:git:https://github.com/database-audits/parent.git</connection>
     <developerConnection>scm:git:https://github.com/database-audits/parent.git</developerConnection>
     <url>https://github.com/database-audits/parent</url>
-    <tag>HEAD</tag>
+    <tag>v1.1.0</tag>
   </scm>
 
   <build>
