@@ -6,6 +6,9 @@ on:
     types: [completed]
     branches: [main]
 
+permissions:
+  contents: read
+
 env:
   MAVEN_COMMAND: ./mvnw
   MAVEN_CLI_COMMON: "-e -B -N"
@@ -22,6 +25,7 @@ jobs:
     steps:
       - uses: actions/checkout@v7
         with:
+          ref: ${{ github.event.workflow_run.head_sha }}
           persist-credentials: false
 
       - uses: ./.github/actions/jdk-setup
