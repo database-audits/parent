@@ -10,6 +10,10 @@ env:
   MAVEN_COMMAND: ./mvnw
   MAVEN_CLI_COMMON: "-e -B -N"
 
+concurrency:
+  group: snapshot-deploy
+  cancel-in-progress: false
+
 jobs:
   deploy-snapshot:
     if: github.event.workflow_run.conclusion == 'success'
