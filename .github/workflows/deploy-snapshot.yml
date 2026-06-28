@@ -20,11 +20,8 @@ jobs:
         with:
           persist-credentials: false
 
-      - uses: actions/setup-java@v5
+      - uses: ./.github/actions/jdk-setup
         with:
-          java-version: '21'
-          distribution: 'temurin'
-          cache: maven
           server-id: central-publish
           server-username: CENTRAL_USERNAME
           server-password: CENTRAL_TOKEN
