@@ -20,6 +20,8 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 120
     environment: release
+    outputs:
+      version: ${{ steps.resolve.outputs.version }}
     steps:
       - uses: actions/checkout@v7
         with:
@@ -32,6 +34,22 @@ jobs:
           server-password: CENTRAL_TOKEN
           gpg-private-key: ${{ secrets.GPG_PRIVATE_KEY }}
           gpg-passphrase: MAVEN_GPG_PASSPHRASE
+
+      # Guard against a mistyped tag releasing the wrong version: the POM is the
+      # source of truth for what gets deployed, so the tag must encode exactly that
+      # version. The resolved version also titles the GitHub Release below.
+      - name: Verify tag matches project version
+        id: resolve
+        env:
+          TAG: ${{ github.ref_name }}
+        run: |
+          version="$(${{ env.MAVEN_COMMAND }} help:evaluate -Dexpression=project.version -q -DforceStdout)"
+          expected="v${version}"
+          if [ "$TAG" != "$expected" ]; then
+            echo "::error::Tag '$TAG' does not match project version (expected '$expected'). Refusing to release."
+            exit 1
+          fi
+          echo "version=${version}" >> "$GITHUB_OUTPUT"
 
       - name: Deploy release to Maven Central
         env:
@@ -55,9 +73,10 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
           TAG: ${{ github.ref_name }} # via env to avoid script injection
+          VERSION: ${{ needs.release.outputs.version }}
         run: |
           gh release create "$TAG" \
             --repo "${{ github.repository }}" \
-            --title "${TAG#v}" \
+            --title "$VERSION" \
             --generate-notes \
             --verify-tag
