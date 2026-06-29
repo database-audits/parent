@@ -1,0 +1,130 @@
+= Releasing the database-audits modules
+
+This repo (`database-audits-parent`) holds the shared release configuration and the
+`release-all.ps1` orchestrator that releases the three sibling repositories together, in
+dependency order: *parent -> core -> spring-boot*. See link:README.adoc[README.adoc] for the
+module layout and how the cross-references are pinned.
+
+When all three are released together, each downstream *adopts* the freshly released upstream as a
+`build(pom): Bump ...` commit before its own release.
+
+== The release mechanism
+
+Per repo, the flow is:
+
+. *Adopt upstream* (downstream only) — bump the cross-reference(s) and commit.
+. `mvn release:prepare` — runs `clean verify` locally (Testcontainers ITs, so Docker is required
+  for `core`/`spring-boot`), creates the two `[maven-release-plugin]` commits plus the
+  `v<version>` tag, and pushes to `origin`.
+. The tag push triggers the `release.yml` workflow, which performs the GPG-signed
+  `deploy -Prelease` to Maven Central and creates a GitHub Release.
+
+`release:perform` is *not* run locally — CI deploys from the tag. The next downstream waits until
+its upstream is resolvable on Maven Central.
+
+== Preconditions
+
+* JDK 21 and Docker running (Rancher Desktop) — `release:prepare` runs the integration tests.
+* Each repo to be released has no uncommitted *tracked* changes, and its current branch is level
+  with its `origin` counterpart. Untracked/loose files are ignored, and the branch need not be
+  `main` — but whatever you release from must already be pushed.
+* Maven Central credentials and the GPG key live on CI only — no local GPG setup is needed.
+* `release-all.ps1` itself must be committed and pushed, because the script requires each repo to
+  be level with its upstream before it will run.
+
+== One-command path
+
+From the `parent` directory:
+
+[source,powershell]
+----
+# Full local rehearsal — runs clean verify per repo, no commits/tags/deploys:
+.\release-all.ps1 -DryRun
+
+# Release parent, core, and spring-boot in order:
+.\release-all.ps1
+
+# Release a subset (e.g. parent was already released):
+.\release-all.ps1 -Modules core,spring-boot
+----
+
+The script prompts for each module's release and next-development version (defaulting to the
+POM-derived values), runs pre-flight, then for each repo adopts the upstream, runs
+`release:prepare`, and waits for the artifact on Maven Central before the dependent repo. It is
+resumable — re-run with `-Modules` starting at the repo that failed; a repo whose release tag
+already exists on origin is skipped.
+
+[NOTE]
+====
+A subset run only adopts upstreams that are part of the *same* run. `-Modules core,spring-boot`
+will not re-point `core`/`spring-boot` at a `parent` released in a separate run -- it assumes any
+omitted upstream is already adopted. If you released an upstream on its own, bump its reference
+first (the manual *core*/*spring-boot* adopt steps below) and commit before resuming, or include
+that upstream in the run.
+====
+
+== Manual fallback
+
+The script automates exactly these steps. Versions below are examples; omit `-B` (and the version
+properties) to have `release:prepare` prompt instead.
+
+*parent*
+
+[source,powershell]
+----
+cd ..\parent
+.\mvnw.cmd -B release:clean release:prepare "-DreleaseVersion=1.1.1" "-DdevelopmentVersion=1.1.2-SNAPSHOT"
+# Wait until database-audits-parent:1.1.1 is on Maven Central.
+----
+
+*core*
+
+[source,powershell]
+----
+cd ..\core
+.\mvnw.cmd -B versions:update-parent "-DparentVersion=1.1.1" -DallowSnapshots=false -DgenerateBackupPoms=false
+git commit -am "build(pom): Bump database-audits-parent to 1.1.1"
+.\mvnw.cmd -B release:clean release:prepare "-DreleaseVersion=1.0.2" "-DdevelopmentVersion=1.0.3-SNAPSHOT"
+# Wait until database-audits-core:1.0.2 is on Maven Central.
+----
+
+*spring-boot* (on `main`, feature branch already merged)
+
+[source,powershell]
+----
+cd ..\spring-boot
+.\mvnw.cmd -B versions:update-parent "-DparentVersion=1.1.1" -DprocessAllModules=true -DallowSnapshots=false -DgenerateBackupPoms=false
+git commit -am "build(pom): Bump database-audits-parent to 1.1.1"
+.\mvnw.cmd -B versions:set-property "-Dproperty=database-audits-core.version" "-DnewVersion=1.0.2" -DprocessAllModules=true -DgenerateBackupPoms=false
+git commit -am "build(pom): Bump database-audits-core to 1.0.2"
+.\mvnw.cmd -B release:clean release:prepare "-DreleaseVersion=1.0.2" "-DdevelopmentVersion=1.0.3-SNAPSHOT"
+----
+
+== Rollback / abort
+
+If `release:prepare` fails or you need to abort *before the tag was pushed*:
+
+[source,powershell]
+----
+.\mvnw.cmd release:rollback     # reverts the [maven-release-plugin] commits
+git reset --hard "@{upstream}"  # also drops the adopt (build(pom) bump) commit
+.\mvnw.cmd release:clean        # removes release.properties and *.tag / *.next backups
+----
+
+If the tag was already pushed, also delete it so a corrected re-run can recreate it:
+
+[source,powershell]
+----
+git push origin :refs/tags/v1.0.2
+git tag -d v1.0.2
+----
+
+== Post-release verification
+
+* Three new tags / GitHub Releases (e.g. parent `v1.1.1`, core `v1.0.2`, spring-boot `v1.0.2`).
+* Artifacts on Maven Central — check the `database-audits` deployment in the Central Portal, or
+  GET `https://repo1.maven.org/maven2/io/github/database-audits/<artifact>/<version>/`.
+* Each repo's `main` now sits on its next `-SNAPSHOT`, and `deploy-snapshot.yml` has redeployed
+  those snapshots.
+* The adopt commits are present: `core` builds on the new parent; `integration` depends on the
+  new core.

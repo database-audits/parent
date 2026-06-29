@@ -1,0 +1,39 @@
+= Database Audits Parent
+
+Shared Maven parent POM and release tooling for the database-audits modules. Consumers do not
+depend on this directly -- they depend on `database-audits-core` or `database-audits-spring-boot`.
+
+== What this is
+
+`database-audits-parent` provides the common build and release configuration inherited by the
+database-audits modules, plus the `release-all.ps1` orchestrator that releases the sibling
+repositories together, in dependency order.
+
+== Module layout
+
+The product is three independent git repositories, checked out as siblings under one container
+directory (e.g. `D:\devroot\database-audits\`):
+
+[cols="1,2,1",options="header"]
+|===
+| Repo dir | Artifact | Version line
+| `parent` | `database-audits-parent` (pom) | 1.1.x
+| `core` | `database-audits-core` (jar) | 1.0.x
+| `spring-boot` | reactor: aggregator + `integration` + `archetype` | 1.0.x
+|===
+
+Release order is the dependency order: *parent -> core -> spring-boot*. Cross-references are
+pinned to *released* upstream versions (never SNAPSHOTs), so each repo builds standalone:
+
+* `core` `<parent>` -> `database-audits-parent`
+* `spring-boot` `<parent>` -> `database-audits-parent`, and the `database-audits-core.version`
+  property in `integration/pom.xml` -> `database-audits-core`
+
+== Releasing
+
+See link:RELEASING.adoc[RELEASING.adoc] for the full release procedure and the `release-all.ps1`
+orchestrator.
+
+== License
+
+Apache License 2.0
