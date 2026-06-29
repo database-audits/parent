@@ -200,7 +200,16 @@
           <groupId>org.codehaus.mojo</groupId>
           <artifactId>versions-maven-plugin</artifactId>
           <configuration>
-            <rulesUri>file:///${maven.multiModuleProjectDirectory}/versions-maven-plugin-rules.xml</rulesUri>
+            <!-- Inline rules so consumer repos (core, spring-boot) inherit them without each needing a
+                 local rules file. For updates, only want releases: ignore alpha/beta/rc/ea/etc. -->
+            <ruleSet>
+              <ignoreVersions>
+                <ignoreVersion>
+                  <type>regex</type>
+                  <version>(?i).*[-_\.](alpha|b|beta|rc|m|ea|preview)[-_\.]?[0-9]*</version>
+                </ignoreVersion>
+              </ignoreVersions>
+            </ruleSet>
           </configuration>
         </plugin>
       </plugins>
