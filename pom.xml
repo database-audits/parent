@@ -193,7 +193,7 @@
             <publishingServerId>central-publish</publishingServerId>
             <autoPublish>true</autoPublish>
             <waitUntil>published</waitUntil>
-            <deploymentName>database-audits</deploymentName>
+            <deploymentName>${project.artifactId}</deploymentName>
           </configuration>
         </plugin>
         <plugin>
