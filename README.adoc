@@ -14,12 +14,12 @@ repositories together, in dependency order.
 The product is three independent git repositories, checked out as siblings under one container
 directory (e.g. `D:\devroot\database-audits\`):
 
-[cols="1,2,1",options="header"]
+[cols="1,2",options="header"]
 |===
-| Repo dir | Artifact | Version line
-| `parent` | `database-audits-parent` (pom) | 1.1.x
-| `core` | `database-audits-core` (jar) | 1.0.x
-| `spring-boot` | reactor: aggregator + `integration` + `archetype` | 1.0.x
+| Repo dir | Artifact
+| `parent` | `database-audits-parent` (pom)
+| `core` | `database-audits-core` (jar)
+| `spring-boot` | reactor: aggregator + `integration` + `archetype`
 |===
 
 Release order is the dependency order: *parent -> core -> spring-boot*. Cross-references are
