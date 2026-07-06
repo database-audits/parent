@@ -25,7 +25,32 @@ jobs:
     steps:
       - uses: actions/checkout@v7
         with:
+          # Full history so the guard below can test whether the tagged commit is on main.
+          fetch-depth: 0
           persist-credentials: false
+
+      # A tag can be pushed from any branch, but only commits on main are released.
+      # Without this guard, tagging any commit on any branch publishes to Maven
+      # Central. Runs before jdk-setup so no GPG key or Central credentials are in
+      # scope if the check fails.
+      - name: Verify tag is on main
+        env:
+          SHA: ${{ github.sha }}
+        run: |
+          # fetch-depth: 0 above populates origin/main. Fail loudly if it is ever
+          # missing (e.g. fetch-depth gets changed) rather than letting the ancestry
+          # test misfire. A plain `git fetch` is deliberately avoided so the guard
+          # needs no credentials (persist-credentials: false above).
+          if ! git rev-parse --verify --quiet refs/remotes/origin/main >/dev/null; then
+            echo "::error::origin/main is not present in the checkout (needs fetch-depth: 0)."
+            exit 1
+          fi
+          if git merge-base --is-ancestor "$SHA" origin/main; then
+            echo "Tagged commit $SHA is on main."
+          else
+            echo "::error::Tagged commit $SHA is not on main. Refusing to release."
+            exit 1
+          fi
 
       - uses: ./.github/actions/jdk-setup
         with:

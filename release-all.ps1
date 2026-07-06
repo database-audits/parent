@@ -194,10 +194,14 @@ function Assert-Releasable {
         throw "[$Name] has uncommitted tracked changes (commit or stash these first):`n$dirty"
     }
     # The release tag must be cut from commits that already exist on origin, so confirm the
-    # current branch is level with its origin counterpart. The branch need not be 'main'.
+    # current branch is level with its origin counterpart. Releases must be cut from 'main':
+    # release.yml refuses to publish a tag whose commit is not on origin/main.
     $branch = (& git -C $RepoPath rev-parse --abbrev-ref HEAD).Trim()
     if ($branch -eq 'HEAD') {
-        throw "[$Name] is in detached HEAD state. Check out the branch you are releasing from."
+        throw "[$Name] is in detached HEAD state. Check out 'main' to release."
+    }
+    if ($branch -ne 'main') {
+        throw "[$Name] is on '$branch', but releases must be cut from 'main' (release.yml refuses to publish a tag whose commit is not on origin/main). Merge to main and check it out first."
     }
     & git -C $RepoPath fetch origin --quiet | Out-Null
     if ($LASTEXITCODE -ne 0) {
