@@ -25,9 +25,10 @@ its upstream is resolvable on Maven Central.
 == Preconditions
 
 * JDK 21 and Docker running (Rancher Desktop) — `release:prepare` runs the integration tests.
-* Each repo to be released has no uncommitted *tracked* changes, and its current branch is level
-  with its `origin` counterpart. Untracked/loose files are ignored, and the branch need not be
-  `main` — but whatever you release from must already be pushed.
+* Each repo to be released is on `main`, with no uncommitted *tracked* changes and `main` level
+  with `origin/main`. Untracked/loose files are ignored. Releases must be cut from `main`:
+  `release.yml` refuses to publish a tag whose commit is not on `origin/main`, so merge and push
+  to `main` before releasing.
 * Maven Central credentials and the GPG key live on CI only — no local GPG setup is needed.
 * `release-all.ps1` itself must be committed and pushed, because the script requires each repo to
   be level with its upstream before it will run.
