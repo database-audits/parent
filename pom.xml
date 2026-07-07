@@ -122,6 +122,8 @@
             <tagNameFormat>v@{project.version}</tagNameFormat>
             <releaseProfiles>release</releaseProfiles>
             <autoVersionSubmodules>true</autoVersionSubmodules>
+            <scmCommentPrefix>build(release): </scmCommentPrefix>
+            <scmDevelopmentCommitComment>build(release): prepare for next development iteration</scmDevelopmentCommitComment>
             <goals>deploy</goals>
           </configuration>
         </plugin>
