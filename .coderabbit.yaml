@@ -2,7 +2,7 @@
 language: en-US
 
 reviews:
-  profile: chill
+  profile: assertive
   request_changes_workflow: false
   poem: false
   collapse_walkthrough: true
