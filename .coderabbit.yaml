@@ -20,10 +20,19 @@ reviews:
         Shared Maven parent POM; dependency, plugin, and property version changes here cascade
         to all child modules (core, spring-boot). Call out major or potentially-breaking bumps
         and any change to <dependencyManagement>/<pluginManagement> defaults downstream relies on.
+    - path: ".github/**"
+      instructions: >-
+        actionlint and zizmor also run here as a blocking "Lint workflows" CI job and on a
+        weekly schedule; zizmor's policy lives in .github/zizmor.yml.
+        The `# zizmor: ignore[...]` suppressions, the tag-pinned first-party `actions/*`
+        refs, and the workspace-relative `./.github/actions/...` action syntax are
+        deliberate policy — do not re-raise them in prose review.
   tools:
     gitleaks:
       enabled: true
     actionlint:
+      enabled: true
+    zizmor:
       enabled: true
 
 knowledge_base:
