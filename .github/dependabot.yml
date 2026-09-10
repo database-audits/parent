@@ -10,6 +10,8 @@ updates:
     directory: "/"
     schedule:
       interval: "weekly"
+    cooldown:
+      default-days: 7
     open-pull-requests-limit: 10
     groups:
       # Maven build and reporting plugins
@@ -28,15 +30,19 @@ updates:
 
   # -----------------------------------------------------------------------
   # GitHub Actions — daily, all actions grouped into one PR.
-  # (Kept daily so security-relevant action pins are updated quickly.)
+  # Checked daily so security-relevant action pins are picked up quickly;
+  # a short 3-day cooldown still lets an obviously-bad release be pulled.
   # The second directory covers the composite action's setup-java pin.
   # -----------------------------------------------------------------------
+  # zizmor: ignore[dependabot-cooldown]  # 3 days is a deliberate tradeoff for actions
   - package-ecosystem: "github-actions"
     directories:
       - "/"
       - "/.github/actions/jdk-setup"
     schedule:
       interval: "daily"
+    cooldown:
+      default-days: 3
     open-pull-requests-limit: 10
     groups:
       actions-updates:                 # Group all action updates into one PR
