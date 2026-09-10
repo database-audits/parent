@@ -14,8 +14,7 @@ on:
       - "**/*.adoc"
       - "**/*.md"
 
-permissions:
-  contents: write # needed as the default GITHUB_TOKEN is read-only and submission 403s without it
+permissions: {}
 
 env:
   MAVEN_COMMAND: ./mvnw
@@ -29,11 +28,29 @@ jobs:
   compile-and-unit-test:
     runs-on: ubuntu-latest
     timeout-minutes: 20 # cold runs pull ~1 GB of database container images
+    permissions:
+      contents: read
     steps:
       - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
       - uses: ./.github/actions/jdk-setup
       - name: Compile and run unit and integration tests
         run: ${{ env.MAVEN_COMMAND }} ${{ env.MAVEN_CLI_COMMON }} clean verify
+
+  # Isolated from the build job so its write-scoped token is never present
+  # while a build of pull-request code runs. Only fires for pushes to main.
+  submit-dependencies:
+    needs: compile-and-unit-test
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+      - uses: ./.github/actions/jdk-setup
       - name: Submit dependencies to GitHub
-        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
-        uses: advanced-security/maven-dependency-submission-action@v5
+        uses: advanced-security/maven-dependency-submission-action@a64327a7329c9939cf675e458452febe1894a70c # v6.0.1
